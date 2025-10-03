@@ -1,0 +1,46 @@
+@using TicketSystem.Authorization
+@model IEnumerable<TicketSystem.Controllers.ProjectListVm>
+@{
+    ViewData["Title"] = "Projects";
+}
+
+<h1>Projects</h1>
+
+@if (User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Developer))
+{
+    <p>
+        <a class="btn btn-primary" asp-action="Create">New Project</a>
+    </p>
+}
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th style="width:120px;">Tickets</th>
+            <th style="width:220px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        <tr>
+            <td>@p.Name</td>
+            <td>@p.Description</td>
+            <td>@p.TicketCount</td>
+            <td>
+                <div class="btn-group gap-2" role="group" aria-label="Project Actions">
+                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@p.Id">Details</a>
+
+                    @if (User.IsInRole(AppRoles.Admin))
+                    {
+                        <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@p.Id">Edit</a>
+                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@p.Id">Delete</a>
+                    }
+                </div>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

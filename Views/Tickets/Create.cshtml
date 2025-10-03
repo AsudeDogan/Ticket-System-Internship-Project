@@ -1,0 +1,109 @@
+@model TicketSystem.Models.Ticket
+@{
+    ViewData["Title"] = "Create Ticket";
+}
+
+<h2>Create Ticket</h2>
+
+<style>
+    /* Daha belirgin gri drop zone */
+    #dropZone {
+        border: 2px dashed #b0bec5;           /* daha koyu gri kenarlık */
+        background: #f1f3f5;                   /* belirgin açık gri zemin */
+        border-radius: .75rem;
+        min-height: 160px;
+        transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+    }
+    #dropZone.drag-over {
+        background: #e2e8f0;                   /* sürüklerken biraz daha koyu */
+        border-color: #90a4ae;
+    }
+    #dropZone .dz-inner { min-height: 140px; }
+</style>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" rows="4" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <!-- Dosya ekleme alanı -->
+    <div class="mb-3">
+        <label class="form-label">Add files (optional)</label>
+
+        <div id="dropZone" class="p-4">
+            <div class="dz-inner d-flex flex-column justify-content-center align-items-center text-center">
+                <div class="mb-2">Drag & Drop files</div>
+                <div class="text-muted my-1">or</div>
+                <label class="btn btn-outline-primary btn-sm">
+                    Browse
+                    <input id="attachments" name="attachments" type="file" multiple hidden
+                           accept=".png,.jpg,.jpeg,.pdf,.txt,.log" />
+                </label>
+                <div id="fileList" class="small text-muted mt-2"></div>
+            </div>
+        </div>
+
+        <span class="text-danger" data-valmsg-for="attachments"></span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="Priority" class="form-label"></label>
+            <select asp-for="Priority" class="form-select"
+                    asp-items="Html.GetEnumSelectList<TicketSystem.Models.TicketPriority>()"></select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Type" class="form-label"></label>
+            <select asp-for="Type" class="form-select"
+                    asp-items="Html.GetEnumSelectList<TicketSystem.Models.TicketType>()"></select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ProjectId" class="form-label">Project</label>
+            <select asp-for="ProjectId" class="form-select" asp-items="ViewBag.ProjectId">
+                <option value="">-- None --</option>
+            </select>
+            <span asp-validation-for="ProjectId" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+
+    @section Scripts{
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            (function () {
+                const dz = document.getElementById('dropZone');
+                const input = document.getElementById('attachments');
+                const list = document.getElementById('fileList');
+
+                function renderList(files) {
+                    if (!files || files.length === 0) { list.textContent = ''; return; }
+                    const names = Array.from(files).map(f => `${f.name} (${(f.size/1024).toFixed(1)} KB)`);
+                    list.textContent = names.join(', ');
+                }
+
+                dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+                dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+                dz.addEventListener('drop', e => {
+                    e.preventDefault(); dz.classList.remove('drag-over');
+                    input.files = e.dataTransfer.files;
+                    renderList(input.files);
+                });
+                input.addEventListener('change', () => renderList(input.files));
+            })();
+        </script>
+    }
+</form>

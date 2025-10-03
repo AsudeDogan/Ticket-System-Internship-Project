@@ -1,0 +1,26 @@
+Proje Akış Dokümanı — TicketSystem
+
+## Roller
+-User: Ticket açar; sadece kendi ticket’larını görür.
+-Developer: Kendine atanmış + kendi oluşturduğu ticket’ları görür; yorum ekler; durumu Open/Closed yapar.
+-Admin: Tüm ticket/projeleri görür; geliştirici atar; dashboard’u görür.
+
+## Ana Akış
+1.Ticket Oluşturma: User/Dev/Admin → Create → (İsteğe bağlı Project) → Ticket "Open" kaydolur.
+2.Atama (Assign): Admin, Edit ekranında AssignedTo seçer → atanan developera bildirim gider.
+3.Yorum: Dev/Admin, Details’ta yorum ekler → Ticket sahibi + atanmış dev bildirim alır.
+4.Durum Değiştirme: Dev/Admin → Open ↔ Closed
+
+## Görünürlük Kuralları
+- User: Sadece kendi ticket’ları (Projects > Details’ta da aynı kural).
+- Developer:Kendine atanmış + kendi oluşturduğu ticket’lar.
+- Admin: Tümü.
+
+## Ekran Akışı
+Home → Tickets (Admin/Dev için Priority & Type filtreleri) → Details (yorum / aç-kapa)  
+Admin ayrıca: Edit (Assign) ve Dashboard (Open/Closed pie chart).
+
+## Bildirimler
+- Yeni Ticket: Tüm Admin’lere (oluşturan admin hariç).
+- Atama: Atanan developera.
+- Yorum: Ticket sahibi + atanmış developera.

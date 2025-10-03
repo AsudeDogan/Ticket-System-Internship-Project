@@ -1,0 +1,78 @@
+@model TicketSystem.Models.Ticket
+@{
+    ViewData["Title"] = "Ticket Details";
+}
+
+<h2 class="mb-3">@Model.Title</h2>
+
+<div class="mb-3">
+    <div><strong>Description:</strong> @Model.Description</div>
+    <div><strong>Status:</strong> @Model.Status</div>
+    <div><strong>Priority:</strong> @Model.Priority</div>
+    <div><strong>Type:</strong> @Model.Type</div>
+    <div><strong>Project:</strong> @Model.Project?.Name ?? "—"</div>
+    <div><strong>Created at:</strong> @Model.CreatedAt.ToLocalTime()</div>
+    <div><strong>Created by:</strong> @Model.CreatedBy?.Email ?? "—"</div>
+    <div><strong>Assigned to:</strong> @Model.AssignedTo?.Email ?? "—"</div>
+</div>
+
+@if (Model.Attachments != null && Model.Attachments.Any())
+{
+    <h4 class="mt-4">Attachments</h4>
+    <ul class="list-group mb-3">
+        @foreach (var a in Model.Attachments.OrderByDescending(x => x.UploadedAt))
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="@a.FilePath" download>@a.FileName</a>
+                <span class="small text-muted">
+                    @a.ContentType • @(Math.Round(a.Size/1024.0, 1)) KB
+                </span>
+            </li>
+        }
+    </ul>
+}
+
+<hr />
+
+<h3 class="mt-4">Comments</h3>
+
+@if (Model.Comments != null && Model.Comments.Any())
+{
+    <ul class="list-group mb-3">
+        @foreach (var c in Model.Comments.OrderByDescending(x => x.CommentedAt))
+        {
+            <li class="list-group-item">
+                <div class="small text-muted">
+                    @c.CommentedBy?.Email ?? "—" • @c.CommentedAt.ToLocalTime()
+                </div>
+                <div>@c.CommentText</div>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">No comments yet.</p>
+}
+
+@if (TempData["CommentError"] is string err && !string.IsNullOrWhiteSpace(err))
+{
+    <div class="alert alert-warning">@err</div>
+}
+
+@if (User.IsInRole("Developer") || User.IsInRole("Admin"))
+{
+    <form asp-action="AddComment" method="post" class="mb-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="mb-2">
+            <label class="form-label">Add a comment</label>
+            <textarea name="commentText" class="form-control" rows="3" placeholder="Write a comment..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+    </form>
+}
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+</div>

@@ -1,0 +1,42 @@
+@inject TicketSystem.Data.AppDbContext Db
+@inject Microsoft.AspNetCore.Identity.UserManager<TicketSystem.Models.ApplicationUser> UserManager
+
+@{
+    var uid = UserManager.GetUserId(User);
+    var unread = 0;
+    if (!string.IsNullOrEmpty(uid))
+    {
+        unread = Db.Notifications.Where(n => n.UserId == uid && !n.IsRead).Count();
+    }
+}
+
+
+<style>
+  .badge-notif {
+    position: absolute;
+    top: .38rem;        
+    right: .1rem;      
+    transform: none;    
+    min-width: 1.1rem;
+    height: 1.1rem;
+    font-size: .70rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+</style>
+
+<li class="nav-item">
+    <a asp-controller="Notifications" asp-action="Index" class="nav-link position-relative">
+        <span aria-hidden="true">🔔</span>
+
+        @if (unread > 0)
+        {
+            <span class="badge-notif badge rounded-pill bg-danger">
+                @unread
+                <span class="visually-hidden">unread</span>
+            </span>
+        }
+    </a>
+</li>

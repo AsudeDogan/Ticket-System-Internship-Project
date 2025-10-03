@@ -1,0 +1,137 @@
+@model TicketSystem.Models.AdminDashboardVm
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2 class="mb-4">Admin Dashboard</h2>
+
+<div class="row g-3 align-items-stretch">
+    <!-- PİE: biraz küçültüldü -->
+    <div class="col-12 col-lg-5 col-xl-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Ticket Status (Pie Chart)</div>
+            <div class="card-body">
+                <canvas id="statusPie" style="height:300px"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI: daha dar kart -->
+    <div class="col-12 col-lg-3 col-xl-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                <div class="text-muted">Total Ticket Count</div>
+                <div class="display-6 my-2">@Model.TotalTickets</div>
+                <div>Open: <strong>@Model.OpenCount</strong></div>
+                <div>Closed: <strong>@Model.ClosedCount</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Haftalık çubuk grafik: kalan genişlik -->
+<div class="row g-3 mt-3">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    Weekly Tickets by Priority ·
+                    <strong>@Model.WeekStart.ToString("dd MMM") – @Model.WeekEnd.ToString("dd MMM yyyy")</strong>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-secondary"
+                       asp-action="Dashboard" asp-controller="Admin"
+                       asp-route-weekOffset="@(Model.WeekOffset - 1)"><i class="bi bi-chevron-left"></i> < </a>
+                    <a class="btn btn-outline-secondary"
+                       asp-action="Dashboard" asp-controller="Admin"
+                       asp-route-weekOffset="@(Model.WeekOffset + 1)">> <i class="bi bi-chevron-right"></i></a>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyBar" style="height:320px"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // PİE renkleri (Open/Closed)
+    const closedCount = @Model.ClosedCount;
+    const openCount   = @Model.OpenCount;
+    const total       = closedCount + openCount;
+    const closedPct = total ? ((closedCount * 100) / total).toFixed(1) : 0;
+    const openPct   = total ? ((openCount   * 100) / total).toFixed(1) : 0;
+
+    new Chart(document.getElementById('statusPie'), {
+        type: 'pie',
+        data: {
+            labels: [`Closed (${closedPct}%)`, `Open (${openPct}%)`],
+            datasets: [{
+                data: [closedCount, openCount],
+                backgroundColor: ['#2ba44e', '#f39c12'], // yeşil & turuncu
+                borderColor: ['#fff', '#fff'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Haftalık bar: Low/Medium/High yan yana ve ince çubuklar
+    const weekLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeekLabels));
+    const lowData    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeekLow));
+    const medData    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeekMedium));
+    const highData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeekHigh));
+
+    new Chart(document.getElementById('weeklyBar'), {
+        type: 'bar',
+        data: {
+            labels: weekLabels,
+            datasets: [
+                {
+                    label: 'Low',
+                    data: lowData,
+                    backgroundColor: '#cfe2ff', // açık mavi
+                    borderWidth: 0,
+                    barThickness: 15,           //  column
+                    categoryPercentage: 0.5,
+                    barPercentage: 0.6
+                },
+                {
+                    label: 'Medium',
+                    data: medData,
+                    backgroundColor: '#1f6feb', // orta mavi
+                    borderWidth: 0,
+                    barThickness: 15,
+                    categoryPercentage: 0.5,
+                    barPercentage: 0.6
+                },
+                {
+                    label: 'High',
+                    data: highData,
+                    backgroundColor: '#0b3d91', // koyu mavi
+                    borderWidth: 0,
+                    barThickness: 15,
+                    categoryPercentage: 0.5,
+                    barPercentage: 0.6
+                }
+            ]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+                x: { stacked: false, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { precision:0 } }
+            },
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+</script>
